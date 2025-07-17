@@ -51,5 +51,6 @@ eagle.epf
 *.lck
 output_files/
 __pycache__/
-AI_testing_local.py
-google_scrape_deepseek_mult_email.py
+outside_files/
+app.py
+.venv

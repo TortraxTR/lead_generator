@@ -36,7 +36,7 @@ def extract_email(text):
     matches = re.findall(email_pattern, text)
     return matches[0] if matches else None
 
-async def search_places_near_coordinates(query, latitude, longitude, email_extraction_enabled, review_extraction_enabled, worker_id):
+async def search_places_near_coordinates(query, latitude, longitude, worker_id):
     search_time = time.time()
     try:
         browser = await get_browser_instance(worker_id)
@@ -79,29 +79,6 @@ async def search_places_near_coordinates(query, latitude, longitude, email_extra
                 if await page.locator(website_xpath).count() > 0:
                     website_url = await page.locator(website_xpath).get_attribute('href')
                 
-                if email_extraction_enabled:
-                    # Attempt to extract email from the card
-                    email = None
-                    page_content = await page.content()
-                    email = extract_email(page_content)
-                    
-                    # If we have a website but no email, try visiting the website to find email
-                    if website_url and not email:
-                        try:
-                            # Open new tab for website
-                            async with context.expect_page() as new_page_info:
-                                await page.locator(website_xpath).click()
-                            new_page = await new_page_info.value
-                            await new_page.wait_for_load_state()
-                            await asyncio.sleep(3)  # Wait for website to load
-
-                            # Try to find email on website
-                            website_content = await new_page.content()
-                            email = extract_email(website_content)
-                            await new_page.close()
-                        except Exception as e:
-                            print(f"Error visiting website for email extraction: {e}")
-                
                 result = {
                     'name': name.strip() if name else None,
                     'address': address.strip() if address else None,
@@ -109,8 +86,7 @@ async def search_places_near_coordinates(query, latitude, longitude, email_extra
                     'website': website_url if website_url else None,
                     'coordinates': f"{latitude},{longitude}"
                 }
-                if email_extraction_enabled:
-                    result['email'] = email if email else None
+                
                 print(f"Search for {query} completed in {time.time() - search_time:.2f} seconds.") 
                 
                 return result
@@ -130,7 +106,7 @@ async def search_places_near_coordinates(query, latitude, longitude, email_extra
         print(f"Browser error for {query}: {e}")
         return None
 
-async def process_batch_async(rows, max_workers, email_extraction_enabled, review_extraction_enabled):
+async def process_batch_async(rows, max_workers):
     places = []
     
     # Create tasks for each row
@@ -140,8 +116,6 @@ async def process_batch_async(rows, max_workers, email_extraction_enabled, revie
         tasks.append(
             search_places_near_coordinates(
                 row.name, row.lat, row.lon, 
-                email_extraction_enabled,
-                review_extraction_enabled,
                 worker_id
             )
         )
@@ -155,7 +129,7 @@ async def process_batch_async(rows, max_workers, email_extraction_enabled, revie
     
     return places
 
-async def get_data_from_Google_async(df, batch_size, max_workers, email_extraction_enabled):
+async def get_data_from_Google_async(df, batch_size, max_workers):
     warnings.filterwarnings("ignore", category=ResourceWarning)
     try:
         all_places = []
@@ -168,8 +142,6 @@ async def get_data_from_Google_async(df, batch_size, max_workers, email_extracti
             batch_results = await process_batch_async(
                 batch.itertuples(), 
                 max_workers=max_workers, 
-                email_extraction_enabled=email_extraction_enabled,
-                review_extraction_enabled=False
             )
             
             all_places.extend(batch_results)
@@ -185,5 +157,5 @@ async def get_data_from_Google_async(df, batch_size, max_workers, email_extracti
         await close_browser_instances()
 
 # Wrapper function to run the async code from synchronous context
-def get_data_from_Google(df, batch_size, max_workers, email_extraction_enabled):
-    return asyncio.run(get_data_from_Google_async(df, batch_size, max_workers, email_extraction_enabled))
+def get_data_from_Google(df, batch_size, max_workers):
+    return asyncio.run(get_data_from_Google_async(df, batch_size, max_workers))

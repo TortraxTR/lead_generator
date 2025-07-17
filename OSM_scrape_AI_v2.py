@@ -10,32 +10,32 @@ headers = {
     "content-type": "application/json",
 }
 
+prompt = f"""
+    You are an AI assistant that translates user input into valid Overpass QL queries.
+    Your task is to find the tags that the user is trying to search for in Overpass and return the wanted search query in a format that can be utilized in making Overpass API calls.
+
+    1) Translate the user's input into English (i.e., `İstanbul eczane` would be translated into `pharmacy in İstanbul`).
+    2) Identify the tags that the user is trying to search for. (i.e., for `clinics in Kocaeli` the tags would be "clinic" and "Kocaeli".) DO NOT invent tags.
+    3) Identify the type of tag that the user is searching for. (i.e., `İstanbul` is an area tag in OpenStreetMap with the value `[name="İstanbul"]`.)
+    4) Identify the matching OpenStreetMap node tag that the user is trying to search for. (i.e., `clinics` can be `["amenity" = "clinic"]`.)
+    5) Use the format `area[name="İstanbul"]->.a; (node(area.a)["amenity"="clinic"];)`. Do not alter the positions of the semicolons and do not add any punctuation marks.
+    6) ONLY return the Overpass QL code without any additional text or comments.
+    7) Do not add your own comments or explanations to the output.
+
+    Examples:
+    Input: `clinics in Kocaeli`
+    Output: `area[name="Kocaeli"]->.a; (node(area.a)["amenity"="clinic"];)`
+
+    Input: `hospitals in Istanbul`
+    Output: `area[name="İstanbul"]->.a; (node(area.a)["amenity"="hospital"];)`
+
+    """
+
 def getOverpassQL(query):
     try:
         data = {
         "model": "gemma3n:e4b",
-        "prompt": 
-            f"""
-            You are an AI assistant that translates user input into valid Overpass QL queries.
-            Your task is to find the tags that the user is trying to search for in Overpass and return the wanted search query in a format that can be utilized in making Overpass API calls.
-
-            1) Translate the user's input into English (i.e., `İstanbul eczane` would be translated into `pharmacy in İstanbul`).
-            2) Identify the tags that the user is trying to search for. (i.e., for `clinics in Kocaeli` the tags would be "clinic" and "Kocaeli".) DO NOT invent tags.
-            3) Identify the type of tag that the user is searching for. (i.e., `İstanbul` is an area tag in OpenStreetMap with the value `[name="İstanbul"]`.)
-            4) Identify the matching OpenStreetMap node tag that the user is trying to search for. (i.e., `clinics` can be `["amenity" = "clinic"]`.)
-            5) Use the format `area[name="İstanbul"]->.a; (node(area.a)["amenity"="clinic"];)`. Do not alter the positions of the semicolons and do not add any punctuation marks.
-            6) ONLY return the Overpass QL code without any additional text or comments.
-            7) Do not add your own comments or explanations to the output.
-
-            Examples:
-            Input: `clinics in Kocaeli`
-            Output: `area[name="Kocaeli"]->.a; (node(area.a)["amenity"="clinic"];)`
-
-            Input: `hospitals in Istanbul`
-            Output: `area[name="İstanbul"]->.a; (node(area.a)["amenity"="hospital"];)`
-
-            User Query: '{query}'
-            """,
+        "prompt": prompt + f"""User Query: '{query}'""",
         "stream": False,
         "temperature": 0.2,
         }
