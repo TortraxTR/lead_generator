@@ -4,7 +4,7 @@ import time
 import re
 import warnings
 
-warnings.filterwarnings("ignore", category=ResourceWarning)
+
 
 # Global storage for Playwright instances
 playwright = None
@@ -158,6 +158,7 @@ async def process_batch_async(rows, max_workers, email_extraction_enabled, revie
     return places
 
 async def get_data_from_Google_async(df, batch_size, max_workers, email_extraction_enabled):
+    warnings.filterwarnings("ignore", category=ResourceWarning)
     try:
         all_places = []
         

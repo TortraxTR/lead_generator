@@ -4,8 +4,6 @@ import requests
 import json
 import warnings
 
-warnings.filterwarnings("ignore", category=ResourceWarning)
-
 url = "http://localhost:11434/api/generate"
 
 headers = {
@@ -59,6 +57,7 @@ def getOverpassQL(query):
         return None
 
 def get_OSM_data(user_query):
+    warnings.filterwarnings("ignore", category=ResourceWarning)
     overpass_query = getOverpassQL(user_query)
     api = overpass.API(timeout=60) # Increase timeout for potentially larger queries
 

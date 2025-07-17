@@ -4,9 +4,8 @@ import pandas as pd
 import time
 import warnings
 
-warnings.filterwarnings("ignore", category=ResourceWarning)
-
 def main():
+    warnings.filterwarnings("ignore", category=ResourceWarning)
     startTime = time.time()
     print("Starting OSM data retrieval...")
     user_query = input("Enter your query here, e.g., 'clinics in Kocaeli': ")
