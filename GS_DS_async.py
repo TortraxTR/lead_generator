@@ -4,8 +4,6 @@ import time
 import re
 import warnings
 
-
-
 # Global storage for Playwright instances
 playwright = None
 browsers = {}

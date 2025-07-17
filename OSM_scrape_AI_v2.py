@@ -45,9 +45,9 @@ def getOverpassQL(query):
         if response.status_code == 200:
             result = response.text
             data = json.loads(result)
-            print(f"Gemma API Response: {data['response']}")
+            #print(f"Gemma API Response: {data['response']}")
             actual_response = data["response"].strip("`").strip("ql").replace("])", "];)")
-            print(f"Overpass QL Query: {actual_response}")
+            #print(f"Overpass QL Query: {actual_response}")
             return actual_response
         else:
             raise Exception("Error in Gemma API response.")
@@ -60,7 +60,6 @@ def get_OSM_data(user_query):
     warnings.filterwarnings("ignore", category=ResourceWarning)
     overpass_query = getOverpassQL(user_query)
     api = overpass.API(timeout=60) # Increase timeout for potentially larger queries
-
     print("Executing Overpass query...")
     try:
         response = api.get(overpass_query).get("features")
