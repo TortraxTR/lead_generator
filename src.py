@@ -15,11 +15,12 @@ def main():
     df = get_OSM_data(user_query)
     if df is not None:
         print("OSM data retrieval successful. Continuing with Google data retrieval...")
-        google_data = get_data_from_Google(df, 12, 3, email_extraction_enabled)
+        google_data = get_data_from_Google(df, 24, 4, email_extraction_enabled)
         if google_data is not None:
             print("Google data retrieval successful. Saving results...")
-            pd.DataFrame(google_data).to_excel(f"output_{user_query.replace(' ', '_')}.xlsx", index=False)
-            print(f"Data saved to output_{user_query.replace(' ', '_')}.xlsx successfully.")
+            today = pd.Timestamp.now().strftime("%Y-%m-%d")
+            pd.DataFrame(google_data).to_excel(f"output_files/output_{user_query.replace(' ', '_')}_{today}.xlsx", index=False)
+            print(f"Data saved to output_files/output_{user_query.replace(' ', '_')}_{today}.xlsx successfully.")
 
     endTime = time.time()
     print(f"Total time taken: {endTime - startTime:.2f} seconds.")
