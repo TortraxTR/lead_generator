@@ -19,7 +19,7 @@ def getOverpassQL(query):
             You are an AI assistant that translates user input into valid Overpass QL queries.
             Your task is to find the tags that the user is trying to search for in Overpass and return the wanted search query in a format that can be utilized in making Overpass API calls.
 
-            1) Translate the user's input into English (i.e., `İstanbul eczane` would be translated into `pharmacy in Istanbul`).
+            1) Translate the user's input into English (i.e., `İstanbul eczane` would be translated into `pharmacy in İstanbul`).
             2) Identify the tags that the user is trying to search for. (i.e., for `clinics in Kocaeli` the tags would be "clinic" and "Kocaeli".) DO NOT invent tags.
             3) Identify the type of tag that the user is searching for. (i.e., `İstanbul` is an area tag in OpenStreetMap with the value `[name="İstanbul"]`.)
             4) Identify the matching OpenStreetMap node tag that the user is trying to search for. (i.e., `clinics` can be `["amenity" = "clinic"]`.)
