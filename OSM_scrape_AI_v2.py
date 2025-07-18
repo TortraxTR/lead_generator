@@ -37,7 +37,7 @@ def getOverpassQL(query):
         "model": "gemma3n:e4b",
         "prompt": prompt + f"""User Query: '{query}'""",
         "stream": False,
-        "temperature": 0.2,
+        "temperature": 0.1,
         }
         
         response = requests.post(url=url, headers=headers, data=json.dumps(data))

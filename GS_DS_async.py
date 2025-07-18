@@ -42,7 +42,7 @@ async def search_places_near_coordinates(query, latitude, longitude, worker_id):
         browser = await get_browser_instance(worker_id)
         context = await browser.new_context(
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-            viewport={"width": 1280, "height": 720}
+            viewport={"width": 640, "height": 360}
         )
         
         page = await context.new_page()
