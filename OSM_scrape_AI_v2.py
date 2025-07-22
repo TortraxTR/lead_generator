@@ -11,30 +11,44 @@ headers = {
 }
 
 prompt = f"""
-    You are an AI assistant that translates user input into valid Overpass QL queries.
-    Your task is to find the tags that the user is trying to search for in Overpass and return the wanted search query in a format that can be utilized in making Overpass API calls.
+    You are an Overpass QL query generator. Your sole purpose is to convert user requests into valid Overpass QL code.
 
-    1) Translate the user's input into English (i.e., `İstanbul eczane` would be translated into `pharmacy in İstanbul`).
-    2) Identify the tags that the user is trying to search for. (i.e., for `clinics in Kocaeli` the tags would be "clinic" and "Kocaeli".) DO NOT invent tags.
-    3) Identify the type of tag that the user is searching for. (i.e., `İstanbul` is an area tag in OpenStreetMap with the value `[name="İstanbul"]`.)
-    4) Identify the matching OpenStreetMap node tag that the user is trying to search for. (i.e., `clinics` can be `["amenity" = "clinic"]`.)
-    5) Use the format `area[name="İstanbul"]->.a; (node(area.a)["amenity"="clinic"];)`. Do not alter the positions of the semicolons and do not add any punctuation marks.
-    6) ONLY return the Overpass QL code without any additional text or comments.
-    7) Do not add your own comments or explanations to the output.
+    Follow these steps precisely:
 
-    Examples:
-    Input: `clinics in Kocaeli`
-    Output: `area[name="Kocaeli"]->.a; (node(area.a)["amenity"="clinic"];)`
+    1.  **Identify Location & Amenity:** Determine the **location** (e.g., "Kocaeli", "İstanbul") and the **amenity** (e.g., "clinic", "hospital", "pharmacy") the user is asking for.
+    2.  **Map to OpenStreetMap Tags:**
+        * **Location:** Map the identified location to `area[name="LOCATION_NAME"]`. Ensure the location name is capitalized correctly if it's a proper noun. For example, "Istanbul" becomes `İstanbul`.
+        * **Amenity:** Map the identified amenity to its corresponding OpenStreetMap key-value pair.
+            * "clinics" -> `["amenity"="clinic"]`
+            * "hospitals" -> `["amenity"="hospital"]`
+            * "pharmacy" / "eczaneler" -> `["amenity"="pharmacy"]`
+            * DO NOT invent new tags. Only use exact matches.
+    3.  **Construct Overpass QL:** Combine these into the exact format: `area[name="LOCATION_NAME"]->.a; (node(area.a)["AMENITY_TAG"];)`
+        * Maintain the semicolons and parentheses exactly as shown.
+        * Do not add any other punctuation.
 
-    Input: `hospitals in Istanbul`
-    Output: `area[name="İstanbul"]->.a; (node(area.a)["amenity"="hospital"];)`
+    **Output Rules:**
+    * **ONLY** output the Overpass QL code.
+    * **NO** extra text, explanations, comments, or conversational filler.
 
+    ---
+
+    **Examples:**
+
+    * **Input:** `clinics in Kocaeli`
+    * **Output:** `area[name="Kocaeli"]->.a; (node(area.a)["amenity"="clinic"];)`
+
+    * **Input:** `hospitals in Istanbul`
+    * **Output:** `area[name="İstanbul"]->.a; (node(area.a)["amenity"="hospital"];)`
+
+    * **Input:** `İstanbul eczane`
+    * **Output:** `area[name="İstanbul"]->.a; (node(area.a)["amenity"="pharmacy"];)`
     """
 
 def getOverpassQL(query):
     try:
         data = {
-        "model": "gemma3n:e4b",
+        "model": "gemma3n:e2b",
         "prompt": prompt + f"""User Query: '{query}'""",
         "stream": False,
         "temperature": 0.1,
@@ -56,7 +70,7 @@ def getOverpassQL(query):
         print(f"Error in getOverpassQL: {e}")
         return None
 
-def get_OSM_data(user_query):
+def get_OSM_data_AI(user_query):
     warnings.filterwarnings("ignore", category=ResourceWarning)
     overpass_query = getOverpassQL(user_query)
     api = overpass.API(timeout=60) # Increase timeout for potentially larger queries

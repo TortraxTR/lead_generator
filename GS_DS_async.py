@@ -114,7 +114,7 @@ async def process_batch_async(rows, max_workers):
         )
     
     # Run all tasks concurrently
-    results = await asyncio.gather(*tasks, return_exceptions=True)
+    results = await asyncio.gather(*tasks, return_exceptions=False)
     
     for result in results:
         if result and not isinstance(result, Exception):
@@ -146,9 +146,13 @@ async def get_data_from_Google_async(df, batch_size, max_workers):
             print("No results found or an error occurred.")
             
     finally:
-        # Clean up browser instances
-        await close_browser_instances()
+        pass
 
 # Wrapper function to run the async code from synchronous context
 def get_data_from_Google(df, batch_size, max_workers):
-    return asyncio.run(get_data_from_Google_async(df, batch_size, max_workers))
+    loop = asyncio.get_event_loop()
+    try:
+        return loop.run_until_complete(get_data_from_Google_async(df, batch_size, max_workers))
+    finally:
+        loop.run_until_complete(close_browser_instances())
+        loop.close()
