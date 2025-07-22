@@ -1,7 +1,6 @@
 import asyncio
 from playwright.async_api import async_playwright
 import time
-import re
 import warnings
 
 # Global storage for Playwright instances
@@ -30,12 +29,6 @@ async def close_browser_instances():
         await playwright.stop()
         playwright = None
 
-def extract_email(text):
-    """Helper function to extract email addresses from text"""
-    email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-    matches = re.findall(email_pattern, text)
-    return matches[0] if matches else None
-
 async def search_places_near_coordinates(query, latitude, longitude, worker_id):
     search_time = time.time()
     try:
@@ -57,41 +50,42 @@ async def search_places_near_coordinates(query, latitude, longitude, worker_id):
                 await accept_button.click()
                 await asyncio.sleep(2)
       
-            try:  
-                name_attribute = 'h1.DUwDvf'
-                address_xpath = '//button[@data-item-id="address"]//div[contains(@class, "fontBodyMedium")]'
-                phone_number_xpath = '//button[contains(@data-item-id, "phone:tel:")]//div[contains(@class, "fontBodyMedium")]'
-                website_xpath = '//a[contains(@data-item-id, "authority")]'
+            name_attribute = 'h1.DUwDvf'
+            address_xpath = '//button[@data-item-id="address"]//div[contains(@class, "fontBodyMedium")]'
+            phone_number_xpath = '//button[contains(@data-item-id, "phone:tel:")]//div[contains(@class, "fontBodyMedium")]'
+            website_xpath = '//a[contains(@data-item-id, "authority")]'
                 
                 # Click on the first link matching the locator
-                links = page.locator('//a[contains(@href, "https://www.google.com/maps/place")]')
-                if await links.count() > 0:
-                    card = links.first
-                    await card.click()
-                    await page.wait_for_timeout(2000)
+            links = page.locator('//a[contains(@href, "https://www.google.com/maps/place")]')
+            if await links.count() > 0:
+                card = links.first
+                await card.click()
+                await page.wait_for_timeout(2000)
                 
-                name = await page.locator(name_attribute).inner_text()
-                address = await page.locator(address_xpath).inner_text()
-                phone_number = await page.locator(phone_number_xpath).inner_text() if await page.locator(phone_number_xpath).count() > 0 else None
-                
-                # Try to get website URL
-                website_url = None
-                if await page.locator(website_xpath).count() > 0:
-                    website_url = await page.locator(website_xpath).get_attribute('href')
-                
-                result = {
-                    'name': name.strip() if name else None,
-                    'address': address.strip() if address else None,
-                    'phone_number': phone_number.strip() if phone_number else None,
-                    'website': website_url if website_url else None,
-                    'coordinates': f"{latitude},{longitude}"
-                }
-                
-                print(f"Search for {query} completed in {time.time() - search_time:.2f} seconds.") 
-                
-                return result
+            name = await page.locator(name_attribute).inner_text()
+            address = await page.locator(address_xpath).inner_text()
+            phone_number = await page.locator(phone_number_xpath).inner_text() if await page.locator(phone_number_xpath).count() > 0 else None
             
-            except Exception as e:
+            # Try to get website URL
+            website_url = None
+            if await page.locator(website_xpath).count() > 0:
+                website_url = await page.locator(website_xpath).get_attribute('href')
+                
+            result = {
+                'name': name.strip() if name else None,
+                'address': address.strip() if address else None,
+                'phone_number': phone_number.strip() if phone_number else None,
+                'website': website_url if website_url else None,
+                'coordinates': f"{latitude},{longitude}"
+            }
+
+            await context.close()
+                
+            print(f"Search for {query} completed in {time.time() - search_time:.2f} seconds.") 
+                
+            return result
+            
+        except Exception as e:
                 print(f"Error processing card for {query}: {e}")
                 return None
             
@@ -99,8 +93,7 @@ async def search_places_near_coordinates(query, latitude, longitude, worker_id):
             print(f"Error during search for {query}: {e}")
             return None
         
-        finally:
-            await context.close()
+
 
     except Exception as e:
         print(f"Browser error for {query}: {e}")
@@ -141,7 +134,7 @@ async def get_data_from_Google_async(df, batch_size, max_workers):
             
             batch_results = await process_batch_async(
                 batch.itertuples(), 
-                max_workers=max_workers, 
+                max_workers=max_workers
             )
             
             all_places.extend(batch_results)

@@ -13,7 +13,7 @@ def main():
     df = get_OSM_data(user_query)
     if df is not None:
         print("OSM data retrieval successful. Continuing with Google data retrieval...")
-        google_data = get_data_from_Google(df, 24, 4)
+        google_data = get_data_from_Google(df, 12, 3)
         if google_data is not None:
             print("Google data retrieval successful. Saving results...")
             today = pd.Timestamp.now().strftime("%Y-%m-%d")
